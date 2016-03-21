@@ -31,7 +31,7 @@ from ranger.ext.popen_forked import Popen_forked
 
 # TODO: Remove unused parts of runner.py
 #ALLOWED_FLAGS = 'sdpwcrtSDPWCRT'
-ALLOWED_FLAGS = 'cfrtCFRT'
+ALLOWED_FLAGS = 'cfrtoCFRT'
 
 
 def press_enter():
@@ -139,6 +139,7 @@ class Runner(object):
         pipe_output = False
         wait_for_enter = False
         devnull = None
+        oneline = False
 
         if 'shell' not in popen_kws:
             popen_kws['shell'] = isinstance(action, str)
@@ -205,6 +206,7 @@ class Runner(object):
         popen_kws['args'] = action
         # Finally, run it
 
+        stdout = ''
         if toggle_ui:
             self._activate_ui(False)
         try:
@@ -224,6 +226,7 @@ class Runner(object):
                 self._log("Failed to run: %s\n%s" % (str(action), str(e)))
             else:
                 if context.wait:
+                    stdout, stderr = process.communicate()
                     process.wait()
                 elif process:
                     self.zombies.add(process)
@@ -239,4 +242,6 @@ class Runner(object):
             if pipe_output and process:
                 return self(action='less', app='pager', try_app_first=True,
                         stdin=process.stdout)
+            if 'o' in context.flags:
+                self.fm.notify(stdout);
             return process
